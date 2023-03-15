@@ -363,7 +363,7 @@ impl<T: StatelessOptimizer> Optimizer for T {
 }
 
 pub struct GradientDescentOptimizer {
-    a: f32,
+    pub a: f32,
 }
 
 impl GradientDescentOptimizer {
