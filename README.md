@@ -88,7 +88,7 @@ let mut dx = vec![0.0; variable_count];
 
 for (input, target) in cases {
     // feed the network the input and then compute the gradient
-    self.run_and_record(input)
+    driver.run_and_record(input)
         .compute_gradients(target, |idx, val| dx[idx] = val);
 
     // optimize the network
