@@ -47,9 +47,9 @@ for _ in 0..100 {
         // algorithm with some baseline
         // hyperparameters
         AdamOptimizer {
-            a: 0.01,
-            b1: 0.9,
-            b2: 0.999,
+            learning_rate: 0.01,
+            beta_1: 0.9,
+            beta_2: 0.999,
         },
         // use a batch size of 32, which
         // means the model's weights are
@@ -100,4 +100,4 @@ for (input, target) in cases {
 Neun strives to be a useful and performant library for training and and using neural networks. While it currently only supports relatively simple network topologies, this may change in the future to support arbitrary topologies that fit into a directed acyclic graph. Neun also strives to be flexible, meaning that it hopes to support a wide variety of use cases for the supported topologies, such as custom training loops.
 
 ## Non-goals
-Neun does not have plans to implement GPU-based inference or training; it is purely intended for running on the CPU.
+It's important to note that, right now, Neun does not implement GPU-based inference or training; it only works on the CPU, which is naturally a lot slower for this task. This might change in the future.

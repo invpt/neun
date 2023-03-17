@@ -362,30 +362,32 @@ impl<T: StatelessOptimizer> Optimizer for T {
     }
 }
 
-pub struct GradientDescentOptimizer {
-    pub a: f32,
+#[derive(Debug, Clone)]
+pub struct SgdOptimizer {
+    pub learning_rate: f32,
 }
 
-impl GradientDescentOptimizer {
-    pub fn new(learn_rate: f32) -> GradientDescentOptimizer {
-        GradientDescentOptimizer { a: learn_rate }
+impl SgdOptimizer {
+    pub fn new(learning_rate: f32) -> SgdOptimizer {
+        SgdOptimizer { learning_rate }
     }
 }
 
-impl StatelessOptimizer for GradientDescentOptimizer {}
+impl StatelessOptimizer for SgdOptimizer {}
 
-impl OptimizerInstance for GradientDescentOptimizer {
+impl OptimizerInstance for SgdOptimizer {
     fn apply<'a>(&mut self, vars_and_grads: impl Iterator<Item = (&'a mut f32, &'a f32)>) {
         for (x, dx) in vars_and_grads {
-            *x -= self.a * dx
+            *x -= self.learning_rate * dx
         }
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct AdamOptimizer {
-    pub a: f32,
-    pub b1: f32,
-    pub b2: f32,
+    pub learning_rate: f32,
+    pub beta_1: f32,
+    pub beta_2: f32,
 }
 
 impl Optimizer for AdamOptimizer {
@@ -393,7 +395,9 @@ impl Optimizer for AdamOptimizer {
 
     fn instance(self, n_vars: usize) -> Self::OptimizerInstance {
         AdamOptimizerInstance {
-            cfg: self,
+            learning_rate: self.learning_rate,
+            beta_1: self.beta_1,
+            beta_2: self.beta_2,
             t: 0,
             vdx: vec![0.0; n_vars],
             sdx: vec![0.0; n_vars],
@@ -401,8 +405,11 @@ impl Optimizer for AdamOptimizer {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct AdamOptimizerInstance {
-    cfg: AdamOptimizer,
+    pub learning_rate: f32,
+    pub beta_1: f32,
+    pub beta_2: f32,
     t: i32,
     vdx: Vec<f32>,
     sdx: Vec<f32>,
@@ -416,13 +423,13 @@ impl OptimizerInstance for AdamOptimizerInstance {
             .zip(self.vdx.iter_mut())
             .zip(self.sdx.iter_mut())
         {
-            *vdx = self.cfg.b1 * *vdx + (1.0 - self.cfg.b1) * dx;
-            *sdx = self.cfg.b2 * *sdx + (1.0 - self.cfg.b2) * dx * dx;
+            *vdx = self.beta_1 * *vdx + (1.0 - self.beta_1) * dx;
+            *sdx = self.beta_2 * *sdx + (1.0 - self.beta_2) * dx * dx;
 
-            let vdx_corr = *vdx / (1.0 - self.cfg.b1.powi(self.t));
-            let sdx_corr = *sdx / (1.0 - self.cfg.b2.powi(self.t));
+            let vdx_corr = *vdx / (1.0 - self.beta_1.powi(self.t));
+            let sdx_corr = *sdx / (1.0 - self.beta_2.powi(self.t));
 
-            *x -= self.cfg.a * vdx_corr / (sdx_corr.sqrt() + 1e-8);
+            *x -= self.learning_rate * vdx_corr / (sdx_corr.sqrt() + 1e-8);
         }
     }
 }
@@ -449,9 +456,9 @@ mod tests {
             driver.train(
                 cases.iter(),
                 AdamOptimizer {
-                    a: 0.01,
-                    b1: 0.9,
-                    b2: 0.999,
+                    learning_rate: 0.01,
+                    beta_1: 0.9,
+                    beta_2: 0.999,
                 },
                 32,
             );
