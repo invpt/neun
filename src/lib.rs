@@ -73,15 +73,16 @@ impl Layer {
         let mut source = rand::thread_rng();
         let mut weights = Vec::with_capacity(output_size * input_size);
 
+        let inv_sqrt_inputs = 1.0 / (input_size as f32).sqrt();
         for _ in 0..output_size {
             for _ in 0..input_size {
-                weights.push((source.gen::<u64>() % 100) as f32 / 1000.0)
+                weights.push(source.gen_range(-inv_sqrt_inputs..inv_sqrt_inputs))
             }
         }
 
         let mut biases = Vec::with_capacity(output_size);
         for _ in 0..output_size {
-            biases.push((source.gen::<u64>() % 100) as f32 / 100000.0)
+            biases.push(0.0)
         }
 
         Layer {
@@ -450,7 +451,7 @@ mod tests {
         let mut model = Model::new(&[1, 128, 1]);
         let mut driver = model.driver_mut();
         let mut rng = rand::thread_rng();
-        for _ in 0..10 {
+        for _ in 0..100 {
             cases.shuffle(&mut rng);
 
             driver.train(
